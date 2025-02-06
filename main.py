@@ -1,75 +1,88 @@
-import tkinter as tk
-from googletrans import Translator
-from gtts import gTTS
 import os
+import sys
+import subprocess
+
+# ฟังก์ชันติดตั้งไลบรารี
+def install_package(package):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
+# ตรวจสอบและติดตั้งไลบรารีที่จำเป็น
+required_packages = ["gtts", "googletrans==4.0.0-rc1", "deep-translator"]
+for package in required_packages:
+    try:
+        __import__(package.split("==")[0])  # ตรวจสอบเฉพาะชื่อแพ็กเกจหลัก
+    except ImportError:
+        print(f"กำลังติดตั้ง {package} ...")
+        install_package(package)
+
+# นำเข้าไลบรารีหลังติดตั้ง
+import tkinter as tk
 import shutil
 from pathlib import Path
+from gtts import gTTS
+
+# ตรวจสอบไลบรารีแปลภาษา
+try:
+    from googletrans import Translator
+    translator = Translator()
+    def translate_text(text):
+        return translator.translate(text, src='auto', dest='th').text
+except ModuleNotFoundError:
+    from deep_translator import GoogleTranslator
+    translator = GoogleTranslator(source='auto', target='th')
+    def translate_text(text):
+        return translator.translate(text)
 
 def translate_and_speak():
-    # Hide notification label
     notification_label.place_forget()
-    
-    # Translate text to Thai
     text = text_entry.get()
-    translator = Translator()
-    translated_text = translator.translate(text, src='th', dest='th').text
-    
-    # Generate speech from translated text
+    translated_text = translate_text(text)
+
     tts = gTTS(text=translated_text, lang='th')
-    filename = f"{translated_text}.mp3"  # Use text as filename
+    filename = "translated_audio.mp3"
     tts.save(filename)
-    
-    # Get the download folder path
+
     download_folder = str(Path.home() / "Downloads")
-    
-    # Move the audio file to the download folder
     shutil.move(filename, os.path.join(download_folder, filename))
-    
-    # Notify user about the file location
+
     notification_label.config(text=f"ไฟล์เสียงถูกบันทึกที่: {download_folder}")
     notification_label.place(relx=0.5, rely=0.8, anchor="center")
-    
-    # After 5 seconds, clear the notification
     root.after(5000, clear_notification)
 
 def clear_notification():
     notification_label.config(text="")
     notification_label.place_forget()
 
-# Function to paste text using Ctrl + V
 def paste_text(event):
     text = root.clipboard_get()
     text_entry.insert(tk.INSERT, text)
 
-# Create GUI window
+script_dir = Path(__file__).parent
+icon_path = script_dir / "icon.png"
+background_path = script_dir / "background.png"
+
 root = tk.Tk()
-root.title("กูเกิล แปลงคำเป็นเสียง")
+root.title("แปลงคำเป็นเสียง")
 root.geometry("500x300")
-root.resizable(False, False)  # Disable resizing
+root.resizable(False, False)
 
-# Set icon for the GUI window
-icon = tk.PhotoImage(file='W:\\translate\\icon.png')
-root.iconphoto(False, icon)
+if icon_path.exists():
+    icon = tk.PhotoImage(file=str(icon_path))
+    root.iconphoto(False, icon)
 
-# Load background image
-image = tk.PhotoImage(file="W:\\translate\\background.png")
-background_label = tk.Label(root, image=image)
-background_label.place(relwidth=1, relheight=1)
+if background_path.exists():
+    image = tk.PhotoImage(file=str(background_path))
+    background_label = tk.Label(root, image=image)
+    background_label.place(relwidth=1, relheight=1)
 
-# Create text entry box
 text_entry = tk.Entry(root, width=40, font=("Helvetica", 14), borderwidth=2, relief="solid")
 text_entry.place(relx=0.5, rely=0.4, anchor="center")
 
-# Create "Translate" button
 translate_button = tk.Button(root, text="แปลง", command=translate_and_speak, font=("Helvetica", 12), bg="#4CAF50", fg="white", borderwidth=2, relief="solid")
 translate_button.place(relx=0.5, rely=0.6, anchor="center")
 
-# Label to display notification
 notification_label = tk.Label(root, text="", font=("Helvetica", 10), fg="green")
 notification_label.place(relx=0.5, rely=0.8, anchor="center")
 
-# Bind paste_text function to Ctrl + V
 root.bind("<Control-v>", paste_text)
-
-# Start GUI
 root.mainloop()
