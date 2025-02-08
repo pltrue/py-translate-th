@@ -25,7 +25,7 @@
 
 ```sh
 # Clone โปรเจกต์ผ่าน Git
-git clone https://github.com/twoza0123/py-translate-th.git
+git clone https://github.com/pltrue/py-translate-th.git
 cd py-translate-th
 ```
 
@@ -63,6 +63,6 @@ Copyright (c) 2025 Sumetee Chomthawat
 ---
 
 ## 🧑‍💻 ผู้พัฒนา
-**[twoza0123](https://github.com/twoza0123/)** – พัฒนาและดูแลโค้ด
+**[twoza0123](https://github.com/pltrue/)** – พัฒนาและดูแลโค้ด
 
 หากมีข้อเสนอแนะ สามารถเปิด Issue หรือ Pull Request ได้เลย 🎉
